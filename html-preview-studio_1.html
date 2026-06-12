@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTMLプレビュースタジオ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#2b2742;
+    --paper:#f3f5fc;
+    --card:#ffffff;
+    --coral:#ff6b5e;
+    --coral-soft:#ffe3e0;
+    --blue:#4d8dff;
+    --blue-soft:#dfeaff;
+    --green:#19b88f;
+    --green-deep:#0f9d79;
+    --yellow:#ffc94d;
+    --editor-bg:#2a2d3e;
+    --editor-text:#e9ebf5;
+    --gutter:#9aa0b8;
+    --radius:18px;
+    --shadow:0 4px 0 rgba(43,39,66,.16);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","BIZ UDPGothic","Yu Gothic",sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    font-weight:500;
+  }
+  button{font-family:inherit;cursor:pointer}
+
+  /* ===== ヘッダー ===== */
+  header{
+    display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+    padding:14px 20px;
+    background:var(--card);
+    border-bottom:3px solid var(--ink);
+  }
+  .logo{
+    display:flex;align-items:center;gap:10px;
+  }
+  .logo-mark{
+    width:40px;height:40px;border-radius:12px;
+    background:linear-gradient(135deg,var(--coral) 0 50%,var(--blue) 50% 100%);
+    border:3px solid var(--ink);
+    display:grid;place-items:center;
+    color:#fff;font-weight:800;font-size:15px;
+    box-shadow:var(--shadow);
+  }
+  h1{font-size:1.15rem;font-weight:800;letter-spacing:.02em}
+  .save-state{
+    font-size:.75rem;color:#7a7790;margin-left:2px;min-width:90px;
+  }
+  .header-btns{margin-left:auto;display:flex;gap:10px}
+
+  /* ===== ボタン共通(ステッカー風) ===== */
+  .btn{
+    border:3px solid var(--ink);
+    border-radius:999px;
+    padding:8px 18px;
+    font-weight:800;font-size:.9rem;
+    background:var(--card);color:var(--ink);
+    box-shadow:var(--shadow);
+    transition:transform .08s ease,box-shadow .08s ease;
+    display:inline-flex;align-items:center;gap:6px;
+  }
+  .btn:hover{transform:translateY(-2px);box-shadow:0 6px 0 rgba(43,39,66,.16)}
+  .btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(43,39,66,.16)}
+  .btn:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+  .btn-run{background:var(--green);color:#fff;font-size:1rem;padding:10px 26px}
+  .btn-run:hover{background:var(--green-deep)}
+  .btn-danger{background:#fff;color:#d6453a}
+  .btn-mini{padding:6px 14px;font-size:.8rem}
+  .btn-solid-red{background:#e25548;color:#fff}
+
+  /* ===== メインレイアウト ===== */
+  main{
+    display:grid;
+    grid-template-columns:minmax(330px,44%) 1fr;
+    gap:18px;
+    padding:18px 20px 28px;
+    max-width:1500px;margin:0 auto;
+  }
+  .editors{display:flex;flex-direction:column;gap:18px}
+
+  /* ===== エディタカード ===== */
+  .card{
+    background:var(--card);
+    border:3px solid var(--ink);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    overflow:hidden;
+    display:flex;flex-direction:column;
+  }
+  .card-head{
+    display:flex;align-items:center;gap:10px;
+    padding:10px 14px;
+    border-bottom:3px solid var(--ink);
+  }
+  .tab{
+    font-weight:800;font-size:.9rem;color:#fff;
+    border:2.5px solid var(--ink);border-radius:10px;
+    padding:3px 14px;
+  }
+  .tab-html{background:var(--coral)}
+  .tab-css{background:var(--blue)}
+  .card-head.html-head{background:var(--coral-soft)}
+  .card-head.css-head{background:var(--blue-soft)}
+  .card-hint{font-size:.75rem;color:#6c6885}
+
+  .editor-wrap{
+    display:flex;height:240px;background:var(--editor-bg);
+  }
+  .gutter{
+    user-select:none;
+    padding:12px 8px 12px 12px;
+    text-align:right;
+    color:var(--gutter);
+    background:#232636;
+    font:13px/1.65 "Consolas","Menlo","Osaka-Mono",monospace;
+    overflow:hidden;
+    min-width:42px;
+    white-space:pre;
+  }
+  textarea.code{
+    flex:1;border:0;resize:none;outline:none;
+    background:transparent;color:var(--editor-text);
+    caret-color:var(--yellow);
+    padding:12px;
+    font:13px/1.65 "Consolas","Menlo","Osaka-Mono",monospace;
+    white-space:pre;overflow:auto;
+    tab-size:2;
+  }
+  textarea.code::placeholder{color:#6f7390}
+  textarea.code:focus-visible{box-shadow:inset 0 0 0 3px var(--blue)}
+
+  /* ===== プレビューカード ===== */
+  .preview-card{min-height:560px}
+  .preview-head{
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    background:#fff7e2;
+  }
+  .preview-actions{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+  .preview-body{flex:1;position:relative;background:#fff}
+  iframe.preview{
+    position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff;
+  }
+  .empty-state{
+    position:absolute;inset:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:10px;
+    color:#8a86a0;text-align:center;padding:20px;
+  }
+  .empty-state .face{font-size:2.6rem}
+  .empty-state p{font-weight:700;line-height:1.7}
+
+  /* ===== モーダル ===== */
+  .overlay{
+    position:fixed;inset:0;background:rgba(43,39,66,.55);
+    display:none;align-items:center;justify-content:center;
+    padding:18px;z-index:50;
+  }
+  .overlay.show{display:flex}
+  .modal{
+    background:var(--card);border:3px solid var(--ink);
+    border-radius:var(--radius);box-shadow:0 8px 0 rgba(0,0,0,.25);
+    width:min(640px,100%);max-height:88vh;overflow:auto;
+    padding:22px;
+  }
+  .modal h2{font-size:1.1rem;font-weight:800;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .modal h3{font-size:.95rem;font-weight:800;margin:16px 0 6px;color:var(--ink)}
+  .modal p,.modal li{font-size:.9rem;line-height:1.85}
+  .modal ol{padding-left:22px}
+  .modal .note{
+    background:var(--coral-soft);border:2px dashed var(--coral);
+    border-radius:12px;padding:10px 14px;margin-top:14px;font-size:.85rem;line-height:1.8;
+  }
+  .modal-foot{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
+  .url-box{
+    width:100%;height:120px;margin-top:8px;
+    border:2.5px solid var(--ink);border-radius:12px;
+    padding:10px;font:12px/1.5 "Consolas",monospace;
+    resize:none;background:#f7f7fb;color:var(--ink);
+  }
+  .url-meta{font-size:.78rem;color:#6c6885;margin-top:6px}
+  .kbd{background:#eee;border:1.5px solid #ccc;border-radius:6px;padding:0 6px;font-size:.8em}
+
+  /* ===== 全画面プレビュー ===== */
+  .fs-overlay{
+    position:fixed;inset:0;background:#fff;z-index:60;display:none;flex-direction:column;
+  }
+  .fs-overlay.show{display:flex}
+  .fs-bar{
+    display:flex;align-items:center;gap:10px;
+    padding:8px 14px;background:var(--ink);color:#fff;
+  }
+  .fs-bar span{font-weight:800;font-size:.85rem}
+  .fs-bar .btn{margin-left:auto;box-shadow:none;border-color:#fff;background:#fff}
+  .fs-overlay iframe{flex:1;border:0;width:100%}
+
+  /* ===== トースト ===== */
+  .toast{
+    position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);
+    background:var(--ink);color:#fff;font-weight:700;font-size:.88rem;
+    padding:10px 22px;border-radius:999px;
+    opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;
+    z-index:80;max-width:90vw;text-align:center;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* ===== レスポンシブ ===== */
+  @media (max-width:920px){
+    main{grid-template-columns:1fr;padding:14px 12px 24px}
+    .editor-wrap{height:200px}
+    .preview-card{min-height:420px}
+    h1{font-size:1rem}
+    .header-btns .btn{padding:7px 13px;font-size:.8rem}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .btn,.toast{transition:none}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-mark">&lt;/&gt;</div>
+    <div>
+      <h1>HTMLプレビュースタジオ</h1>
+      <div class="save-state" id="saveState">　</div>
+    </div>
+  </div>
+  <div class="header-btns">
+    <button class="btn btn-mini" id="btnGuide">📖 使い方</button>
+    <button class="btn btn-mini btn-danger" id="btnClear">🗑 全クリア</button>
+  </div>
+</header>
+
+<main>
+  <!-- ===== 入力エリア ===== -->
+  <section class="editors">
+    <div class="card">
+      <div class="card-head html-head">
+        <span class="tab tab-html">HTML</span>
+        <span class="card-hint">ページの中身(本文)を書こう</span>
+      </div>
+      <div class="editor-wrap">
+        <div class="gutter" id="gutterHtml">1</div>
+        <textarea class="code" id="inputHtml" spellcheck="false"
+          placeholder="&lt;h1&gt;こんにちは!&lt;/h1&gt;&#10;&lt;p&gt;はじめてのホームページ&lt;/p&gt;"
+          aria-label="HTMLコード入力欄"></textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head css-head">
+        <span class="tab tab-css">CSS</span>
+        <span class="card-hint">色やデザインを書こう</span>
+      </div>
+      <div class="editor-wrap">
+        <div class="gutter" id="gutterCss">1</div>
+        <textarea class="code" id="inputCss" spellcheck="false"
+          placeholder="h1 {&#10;  color: tomato;&#10;}"
+          aria-label="CSSコード入力欄"></textarea>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== プレビュー ===== -->
+  <section class="card preview-card">
+    <div class="card-head preview-head">
+      <button class="btn btn-run" id="btnRun">▶ 表示する</button>
+      <div class="preview-actions">
+        <button class="btn btn-mini" id="btnFullscreen">⛶ 全画面</button>
+        <button class="btn btn-mini" id="btnUrl">🔗 URLを作る</button>
+        <button class="btn btn-mini" id="btnDownload">⬇ ダウンロード</button>
+      </div>
+    </div>
+    <div class="preview-body">
+      <iframe class="preview" id="previewFrame" sandbox="" title="プレビュー画面"></iframe>
+      <div class="empty-state" id="emptyState">
+        <div class="face">🎨</div>
+        <p>左にコードを書いて<br>「▶ 表示する」を押すと<br>ここにホームページが表示されます</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ===== 使い方モーダル ===== -->
+<div class="overlay" id="guideOverlay" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
+  <div class="modal">
+    <h2 id="guideTitle">📖 使い方ガイド</h2>
+    <h3>① コードを書く</h3>
+    <p>左の <b>HTML欄</b> にページの中身、<b>CSS欄</b> にデザインを書きます。書いた内容はこの端末に自動保存されるので、ページを閉じても次回続きから再開できます。</p>
+    <h3>② プレビューする</h3>
+    <p><b>「▶ 表示する」</b>を押すと右側に結果が表示されます(押すまで更新されません)。<b>「⛶ 全画面」</b>で大きく確認できます。</p>
+    <h3>③ 先生に提出する</h3>
+    <p>提出方法は2つあります。どちらでもOKです。</p>
+    <ol>
+      <li><b>URLで提出:</b>「🔗 URLを作る」→「コピー」を押し、そのURLを先生に送ります。先生がURLを開くと、作品がそのまま表示されます。</li>
+      <li><b>ファイルで提出(Googleドライブ保存):</b>「⬇ ダウンロード」でHTMLファイルを保存し、Googleドライブにアップロードします。
+        <br>・<b>PC:</b> drive.google.com を開き「＋新規」→「ファイルのアップロード」
+        <br>・<b>iPad:</b> ドライブアプリで「＋」→「アップロード」→「ブラウズ」からファイルを選択
+      </li>
+    </ol>
+    <div class="note">
+      ⚠ このアプリでは安全のため <b>&lt;script&gt;タグ(JavaScript)は動作しません</b>。<br>
+      ⚠ URLがブラウザで開けない場合は、ファイルでの提出に切り替えてください。
+    </div>
+    <div class="modal-foot">
+      <button class="btn" id="btnGuideClose">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 全クリア確認モーダル ===== -->
+<div class="overlay" id="clearOverlay" role="dialog" aria-modal="true" aria-labelledby="clearTitle">
+  <div class="modal">
+    <h2 id="clearTitle">🗑 全クリアしますか?</h2>
+    <p>HTMLとCSSの内容をすべて消去します。<b>自動保存されたデータも消えて、元に戻せません。</b></p>
+    <div class="modal-foot">
+      <button class="btn" id="btnClearCancel">やめる</button>
+      <button class="btn btn-solid-red" id="btnClearOk">消去する</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== URLモーダル ===== -->
+<div class="overlay" id="urlOverlay" role="dialog" aria-modal="true" aria-labelledby="urlTitle">
+  <div class="modal">
+    <h2 id="urlTitle">🔗 作品のURLができました</h2>
+    <p>下のURLをコピーして先生に送りましょう。受け取った人はブラウザのアドレスバーに貼り付けると作品が見られます。</p>
+    <textarea class="url-box" id="urlBox" readonly aria-label="生成されたURL"></textarea>
+    <div class="url-meta" id="urlMeta"></div>
+    <div class="modal-foot">
+      <button class="btn" id="btnUrlClose">閉じる</button>
+      <button class="btn btn-run" id="btnUrlCopy">📋 コピー</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 全画面プレビュー ===== -->
+<div class="fs-overlay" id="fsOverlay">
+  <div class="fs-bar">
+    <span>⛶ 全画面プレビュー</span>
+    <button class="btn btn-mini" id="btnFsClose">✕ 閉じる</button>
+  </div>
+  <iframe id="fsFrame" sandbox="" title="全画面プレビュー"></iframe>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const inputHtml = $("inputHtml"), inputCss = $("inputCss");
+  const gutterHtml = $("gutterHtml"), gutterCss = $("gutterCss");
+  const KEY_HTML = "hps_html", KEY_CSS = "hps_css";
+  let storageOk = true;
+
+  /* ---------- トースト ---------- */
+  let toastTimer = null;
+  function toast(msg){
+    const t = $("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove("show"), 2200);
+  }
+
+  /* ---------- 行番号 ---------- */
+  function updateGutter(area, gutter){
+    const n = area.value.split("\n").length;
+    let s = "";
+    for(let i = 1; i <= n; i++) s += i + "\n";
+    gutter.textContent = s;
+    gutter.scrollTop = area.scrollTop;
+  }
+  function bindEditor(area, gutter){
+    area.addEventListener("input", () => { updateGutter(area, gutter); scheduleSave(); });
+    area.addEventListener("scroll", () => { gutter.scrollTop = area.scrollTop; });
+    area.addEventListener("keydown", e => {
+      if(e.key === "Tab"){
+        e.preventDefault();
+        const s = area.selectionStart, t = area.selectionEnd;
+        area.value = area.value.slice(0, s) + "  " + area.value.slice(t);
+        area.selectionStart = area.selectionEnd = s + 2;
+        updateGutter(area, gutter); scheduleSave();
+      }
+    });
+  }
+
+  /* ---------- 自動保存 ---------- */
+  let saveTimer = null;
+  function scheduleSave(){
+    $("saveState").textContent = "保存中…";
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(saveNow, 400);
+  }
+  function saveNow(){
+    if(!storageOk){ $("saveState").textContent = ""; return; }
+    try{
+      localStorage.setItem(KEY_HTML, inputHtml.value);
+      localStorage.setItem(KEY_CSS, inputCss.value);
+      $("saveState").textContent = "✓ 自動保存済み";
+    }catch(e){
+      storageOk = false;
+      $("saveState").textContent = "(自動保存が使えない環境です)";
+    }
+  }
+  function restore(){
+    try{
+      inputHtml.value = localStorage.getItem(KEY_HTML) || "";
+      inputCss.value  = localStorage.getItem(KEY_CSS) || "";
+      if(inputHtml.value || inputCss.value) $("saveState").textContent = "✓ 前回の続きを読み込みました";
+    }catch(e){ storageOk = false; }
+  }
+
+  /* ---------- サニタイズ & ドキュメント生成 ---------- */
+  function sanitize(html){
+    return html
+      .replace(/<script[\s\S]*?<\/script\s*>/gi, "")
+      .replace(/<\/?script[^>]*>/gi, "")
+      .replace(/\son\w+\s*=\s*"[^"]*"/gi, "")
+      .replace(/\son\w+\s*=\s*'[^']*'/gi, "")
+      .replace(/\son\w+\s*=\s*[^\s>]+/gi, "")
+      .replace(/javascript:/gi, "");
+  }
+  function buildDoc(){
+    const safeHtml = sanitize(inputHtml.value);
+    const safeCss  = inputCss.value.replace(/<\/style/gi, "");
+    const styleTag = "<style>\n" + safeCss + "\n</style>";
+    if(/<html[\s>]/i.test(safeHtml)){
+      if(/<\/head>/i.test(safeHtml)) return safeHtml.replace(/<\/head>/i, styleTag + "</head>");
+      return safeHtml.replace(/<html[^>]*>/i, m => m + styleTag);
+    }
+    return "<!DOCTYPE html>\n<html lang=\"ja\">\n<head>\n<meta charset=\"UTF-8\">\n" +
+      "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
+      styleTag + "\n</head>\n<body>\n" + safeHtml + "\n</body>\n</html>";
+  }
+  function isEmpty(){
+    return !inputHtml.value.trim() && !inputCss.value.trim();
+  }
+
+  /* ---------- 表示 ---------- */
+  let hasRendered = false;
+  function run(){
+    if(isEmpty()){ toast("コードを入力してから「▶ 表示する」を押してね"); return; }
+    $("previewFrame").srcdoc = buildDoc();
+    $("emptyState").style.display = "none";
+    hasRendered = true;
+    saveNow();
+  }
+  $("btnRun").addEventListener("click", run);
+
+  /* ---------- 全画面 ---------- */
+  $("btnFullscreen").addEventListener("click", () => {
+    if(isEmpty()){ toast("まずはコードを書いてみよう!"); return; }
+    $("fsFrame").srcdoc = buildDoc();
+    $("fsOverlay").classList.add("show");
+  });
+  let viewerMode = false;
+  $("btnFsClose").addEventListener("click", () => {
+    if(viewerMode){
+      history.replaceState(null, "", location.pathname + location.search);
+      location.reload();
+      return;
+    }
+    $("fsOverlay").classList.remove("show");
+  });
+
+  /* ---------- URL生成 ---------- */
+  function bytesToB64Url(bytes){
+    let bin = "";
+    const chunk = 0x8000;
+    for(let i = 0; i < bytes.length; i += chunk){
+      bin += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+    }
+    return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+  function b64UrlToBytes(s){
+    const b = atob(s.replace(/-/g, "+").replace(/_/g, "/"));
+    return Uint8Array.from(b, c => c.charCodeAt(0));
+  }
+  async function compressText(text){
+    if(typeof CompressionStream === "undefined") return null;
+    try{
+      const stream = new Blob([new TextEncoder().encode(text)])
+        .stream().pipeThrough(new CompressionStream("deflate-raw"));
+      const buf = await new Response(stream).arrayBuffer();
+      return bytesToB64Url(new Uint8Array(buf));
+    }catch(e){ return null; }
+  }
+  async function decompressText(b64){
+    const stream = new Blob([b64UrlToBytes(b64)])
+      .stream().pipeThrough(new DecompressionStream("deflate-raw"));
+    const buf = await new Response(stream).arrayBuffer();
+    return new TextDecoder().decode(buf);
+  }
+  function toDataUrl(doc){
+    const bytes = new TextEncoder().encode(doc);
+    let bin = "";
+    const chunk = 0x8000;
+    for(let i = 0; i < bytes.length; i += chunk){
+      bin += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+    }
+    return "data:text/html;charset=utf-8;base64," + btoa(bin);
+  }
+  $("btnUrl").addEventListener("click", async () => {
+    if(isEmpty()){ toast("コードを書いてからURLを作ろう!"); return; }
+    const doc = buildDoc();
+    let url = null, meta = "";
+    const hosted = location.protocol === "http:" || location.protocol === "https:";
+    if(hosted){
+      const b64 = await compressText(doc);
+      if(b64){
+        url = location.origin + location.pathname + location.search + "#v=" + b64;
+        meta = "URLの長さ: " + url.length.toLocaleString() + " 文字(圧縮済みの短縮URL。開くと作品がそのまま表示されます)";
+      }
+    }
+    if(!url){
+      url = toDataUrl(doc);
+      meta = "URLの長さ: " + url.length.toLocaleString() + " 文字" +
+        (hosted ? "(この環境では圧縮が使えないため標準形式です)"
+                : "(※アプリをWebで公開すると、より短いURLが作れるようになります)");
+    }
+    $("urlBox").value = url;
+    $("urlMeta").textContent = meta;
+    $("urlOverlay").classList.add("show");
+  });
+  $("btnUrlCopy").addEventListener("click", async () => {
+    const text = $("urlBox").value;
+    try{
+      await navigator.clipboard.writeText(text);
+      toast("📋 URLをコピーしました!");
+    }catch(e){
+      $("urlBox").select();
+      document.execCommand("copy");
+      toast("📋 URLをコピーしました!");
+    }
+  });
+  $("btnUrlClose").addEventListener("click", () => $("urlOverlay").classList.remove("show"));
+
+  /* ---------- ダウンロード ---------- */
+  $("btnDownload").addEventListener("click", () => {
+    if(isEmpty()){ toast("コードを書いてからダウンロードしよう!"); return; }
+    const blob = new Blob([buildDoc()], {type: "text/html"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "my-page.html";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+    toast("⬇ my-page.html を保存しました。ドライブにアップロードして提出してね");
+  });
+
+  /* ---------- 全クリア ---------- */
+  $("btnClear").addEventListener("click", () => $("clearOverlay").classList.add("show"));
+  $("btnClearCancel").addEventListener("click", () => $("clearOverlay").classList.remove("show"));
+  $("btnClearOk").addEventListener("click", () => {
+    inputHtml.value = ""; inputCss.value = "";
+    updateGutter(inputHtml, gutterHtml);
+    updateGutter(inputCss, gutterCss);
+    try{
+      localStorage.removeItem(KEY_HTML);
+      localStorage.removeItem(KEY_CSS);
+    }catch(e){}
+    $("previewFrame").srcdoc = "";
+    $("emptyState").style.display = "flex";
+    hasRendered = false;
+    $("clearOverlay").classList.remove("show");
+    $("saveState").textContent = "";
+    toast("🗑 すべて消去しました");
+  });
+
+  /* ---------- 使い方 ---------- */
+  $("btnGuide").addEventListener("click", () => $("guideOverlay").classList.add("show"));
+  $("btnGuideClose").addEventListener("click", () => $("guideOverlay").classList.remove("show"));
+
+  /* ---------- モーダル共通: 背景クリック / Escで閉じる ---------- */
+  ["guideOverlay","clearOverlay","urlOverlay"].forEach(id => {
+    $(id).addEventListener("click", e => { if(e.target === $(id)) $(id).classList.remove("show"); });
+  });
+  document.addEventListener("keydown", e => {
+    if(e.key === "Escape"){
+      ["guideOverlay","clearOverlay","urlOverlay"].forEach(id => $(id).classList.remove("show"));
+      if(!viewerMode) $("fsOverlay").classList.remove("show");
+    }
+  });
+
+  /* ---------- 共有URLビューアモード (#v=...) ---------- */
+  async function tryViewerMode(){
+    const m = location.hash.match(/^#v=([A-Za-z0-9\-_]+)$/);
+    if(!m) return false;
+    viewerMode = true;
+    const bar = $("fsOverlay").querySelector(".fs-bar span");
+    bar.textContent = "🔗 共有された作品を表示中";
+    $("btnFsClose").textContent = "✎ 自分も作ってみる";
+    $("fsOverlay").classList.add("show");
+    try{
+      if(typeof DecompressionStream === "undefined") throw new Error("unsupported");
+      const doc = await decompressText(m[1]);
+      $("fsFrame").srcdoc = doc;
+    }catch(e){
+      $("fsFrame").srcdoc = "<p style='font-family:sans-serif;padding:20px'>" +
+        "この作品URLを読み込めませんでした。URLが途中で切れていないか確認するか、" +
+        "ファイルでの提出に切り替えてください。</p>";
+    }
+    return true;
+  }
+
+  /* ---------- 初期化 ---------- */
+  bindEditor(inputHtml, gutterHtml);
+  bindEditor(inputCss, gutterCss);
+  restore();
+  updateGutter(inputHtml, gutterHtml);
+  updateGutter(inputCss, gutterCss);
+  tryViewerMode();
+})();
+</script>
+</body>
+</html>
